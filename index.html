@@ -141,26 +141,53 @@ qr.start(
 });
 
 function verify() {
-  document.getElementById("result").innerHTML =
-    `<div class="status">Verifying...</div>`;
 
-  fetch(API_URL, {
-    method: "POST",
-    body: new URLSearchParams({ reg_id: regId })
-  })
-  .then(r => r.json())
-  .then(d => {
-    if (d.status !== "INVALID_QR") {
-      document.getElementById("team").innerText = d.team;
-      document.getElementById("leader").innerText = d.leader;
-      document.getElementById("members").innerText = d.members;
-      document.getElementById("events").innerText = d.events;
+  // =====================
+  // DUMMY MODE (TESTING)
+  // =====================
+  if (MODE === "DUMMY") {
+    if (regId === "HKNK-TEST-001") {
+      document.getElementById("team").innerText = "Alpha Team";
+      document.getElementById("leader").innerText = "Nitesh";
+      document.getElementById("members").innerText = "4";
+      document.getElementById("events").innerText = "BGMI, QUIZ";
+
+      document.getElementById("result").innerHTML =
+        `<div class="status ok">ENTRY ALLOWED (DUMMY MODE)</div>`;
+    } else {
+      document.getElementById("result").innerHTML =
+        `<div class="status err">INVALID QR (DUMMY MODE)</div>`;
     }
-    const cls = d.status === "ENTRY_ALLOWED" ? "ok" : "err";
+    return; // ⛔ STOP here (do not call backend)
+  }
+
+  // =====================
+  // LIVE MODE (REAL DATA)
+  // =====================
+  if (MODE === "LIVE") {
     document.getElementById("result").innerHTML =
-      `<div class="status ${cls}">${d.status.replace("_"," ")}</div>`;
-  });
+      `<div class="status">Verifying...</div>`;
+
+    fetch(API_URL, {
+      method: "POST",
+      body: new URLSearchParams({ reg_id: regId })
+    })
+    .then(r => r.json())
+    .then(d => {
+      if (d.status !== "INVALID_QR") {
+        document.getElementById("team").innerText = d.team;
+        document.getElementById("leader").innerText = d.leader;
+        document.getElementById("members").innerText = d.members;
+        document.getElementById("events").innerText = d.events;
+      }
+
+      const cls = d.status === "ENTRY_ALLOWED" ? "ok" : "err";
+      document.getElementById("result").innerHTML =
+        `<div class="status ${cls}">${d.status.replace("_"," ")}</div>`;
+    });
+  }
 }
+
 </script>
 
 </body>
