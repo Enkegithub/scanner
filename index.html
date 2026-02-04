@@ -146,17 +146,25 @@ function onScanSuccess(text) {
 }
 
 function verify() {
-  // INSTANT CONFIRMATION (NO WAIT)
+  // Prevent double click
+  const btn = document.getElementById("submitBtn");
+  btn.disabled = true;
+  btn.innerText = "SUBMITTED ✔";
+
+  // Instant UI feedback
   document.getElementById("result").innerHTML =
     `<div class="status ok">ENTRY RECORDED</div>`;
 
-  // BACKGROUND UPDATE (NO BLOCKING)
+  // Background backend update (non-blocking)
   fetch(API_URL, {
     method: "POST",
     body: new URLSearchParams({ reg_id: scannedData.reg })
   })
+  .then(() => {
+    console.log("Sheet updated");
+  })
   .catch(() => {
-    console.log("Background update failed (can retry later)");
+    console.log("Backend update failed");
   });
 }
 </script>
