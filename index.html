@@ -108,7 +108,8 @@ button:disabled {
 
 <script>
 const MODE = "LIVE"; // works for both test & real
-const API_URL = "https://script.google.com/macros/s/AKfycbxlGtjtsWHc80GhAXt-lYWkpbVN_q8iPGwotz1A2MmR/dev";
+const API_URL = "https://script.google.com/macros/s/AKfycbxlGtjtsWHc80GhAXt-lYWkpbVN_q8iPGwotz1A2MmR/dev" +
+  (MODE === "TEST" ? "?mode=test" : "");
 
 let scannedData = null;
 const qr = new Html5Qrcode("reader");
