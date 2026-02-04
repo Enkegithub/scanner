@@ -112,10 +112,11 @@ button:disabled {
 ========================= */
 
 // CHANGE TO "LIVE" LATER
-const MODE = "DUMMY";  
+/*const MODE = "DUMMY";
+  
 
 // REQUIRED ONLY FOR LIVE MODE
-const API_URL = "PASTE_YOUR_APPS_SCRIPT_URL_HERE";
+const API_URL = "https://script.google.com/macros/s/AKfycbyvY-N_nK4uY7_sgoRE_p9SlJ_1OPkBafME1wotWH3eDbjICpUj6MXMZAt3gjiyg1-EsA/exec";
 
 /* ========================= */
 
@@ -146,13 +147,13 @@ function onScanSuccess(text) {
 
 function verify() {
 
-  /* ===== DUMMY MODE ===== */
+  /* ===== DUMMY MODE ===== 
   if (MODE === "DUMMY") {
     if (regId === "HKNK-TEST-001") {
       document.getElementById("team").innerText = "Alpha Team";
       document.getElementById("leader").innerText = "Nitesh";
       document.getElementById("members").innerText = "4";
-      document.getElementById("events").innerText = "BGMI, QUIZ";
+      document.getElementById("events").innerText = "BGMI";
 
       document.getElementById("result").innerHTML =
         `<div class="status ok">ENTRY ALLOWED (DUMMY MODE)</div>`;
@@ -161,7 +162,7 @@ function verify() {
         `<div class="status err">INVALID QR (DUMMY MODE)</div>`;
     }
     return;
-  }
+  }*/
 
   /* ===== LIVE MODE ===== */
   document.getElementById("result").innerHTML =
