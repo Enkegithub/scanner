@@ -1,79 +1,77 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>HAKERRANNK 2026 – Entry Verification</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<title>HAKERRANNK 2026 – Entry Scanner</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="https://unpkg.com/html5-qrcode"></script>
 
-  <script src="https://unpkg.com/html5-qrcode"></script>
-
-  <style>
-    body {
-      margin: 0;
-      font-family: system-ui, Arial, sans-serif;
-      background: #119191;
-      color: #e5e7eb;
-    }
-    header {
-      background: #020617;
-      padding: 14px;
-      text-align: center;
-      font-size: 18px;
-      font-weight: 600;
-      color: #38bdf8;
-    }
-    .container {
-      max-width: 420px;
-      margin: auto;
-      padding: 14px;
-    }
-    #reader {
-      width: 100%;
-      margin-top: 14px;
-      border-radius: 12px;
-      overflow: hidden;
-    }
-    .card {
-      background: #020617;
-      border: 1px solid #334155;
-      border-radius: 12px;
-      padding: 14px;
-      margin-top: 14px;
-    }
-    .label {
-      font-size: 13px;
-      color: #94a3b8;
-    }
-    .value {
-      font-size: 16px;
-      font-weight: 600;
-      margin-bottom: 8px;
-    }
-    button {
-      width: 100%;
-      margin-top: 16px;
-      padding: 14px;
-      border-radius: 10px;
-      border: none;
-      font-size: 16px;
-      font-weight: 700;
-      background: #22c55e;
-      color: #022c22;
-    }
-    button:disabled {
-      background: #0c64df   ;
-      color: #020617;
-    }
-    .status {
-      margin-top: 14px;
-      padding: 12px;
-      border-radius: 10px;
-      text-align: center;
-      font-weight: 700;
-    }
-    .ok { background: #14532d; color: #22c55e; }
-    .err { background: #450a0a; color: #f87171; }
-  </style>
+<style>
+body {
+  margin: 0;
+  font-family: system-ui, Arial, sans-serif;
+  background: #0f172a;
+  color: #e5e7eb;
+}
+header {
+  background: #020617;
+  padding: 14px;
+  text-align: center;
+  font-size: 18px;
+  font-weight: 600;
+  color: #38bdf8;
+}
+.container {
+  max-width: 420px;
+  margin: auto;
+  padding: 14px;
+}
+#reader {
+  width: 100%;
+  margin-top: 14px;
+  border-radius: 12px;
+  overflow: hidden;
+}
+.card {
+  background: #020617;
+  border: 1px solid #334155;
+  border-radius: 12px;
+  padding: 14px;
+  margin-top: 14px;
+}
+.label {
+  font-size: 13px;
+  color: #94a3b8;
+}
+.value {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+button {
+  width: 100%;
+  margin-top: 16px;
+  padding: 14px;
+  border-radius: 10px;
+  border: none;
+  font-size: 16px;
+  font-weight: 700;
+  background: #22c55e;
+  color: #022c22;
+}
+button:disabled {
+  background: #64748b;
+}
+.status {
+  margin-top: 14px;
+  padding: 12px;
+  border-radius: 10px;
+  text-align: center;
+  font-weight: 700;
+}
+.ok { background: #14532d; color: #22c55e; }
+.err { background: #450a0a; color: #f87171; }
+</style>
 </head>
 
 <body>
@@ -82,10 +80,8 @@
 
 <div class="container">
 
-  <!-- CAMERA ONLY -->
   <div id="reader"></div>
 
-  <!-- DATA SHOWN AFTER SCAN -->
   <div class="card">
     <div class="label">Registration ID</div>
     <div class="value" id="regId">—</div>
@@ -111,45 +107,55 @@
 </div>
 
 <script>
+const API_URL = "PASTE_YOUR_APPS_SCRIPT_URL_HERE";
 let regId = "";
-const html5QrCode = new Html5Qrcode("reader");
+const qr = new Html5Qrcode("reader");
 
-// START CAMERA (NO IMAGE UPLOAD)
-Html5Qrcode.getCameras().then(cameras => {
-  html5QrCode.start(
-    cameras[0].id,
-    { fps: 10, qrbox: 250 },
-    qrText => {
-      const match = qrText.match(/REG_ID:(.*)/);
-      if (!match) return;
+// Start BACK CAMERA by default
+qr.start(
+  { facingMode: { exact: "environment" } },
+  { fps: 10, qrbox: 250 },
+  text => {
+    const match = text.match(/REG_ID:(.*)/);
+    if (!match) return;
 
-      regId = match[1].trim();
-      document.getElementById("regId").innerText = regId;
-      document.getElementById("submitBtn").disabled = false;
+    regId = match[1].trim();
+    document.getElementById("regId").innerText = regId;
+    document.getElementById("submitBtn").disabled = false;
 
-      // STOP CAMERA AFTER SUCCESSFUL SCAN
-      html5QrCode.stop();
-    }
-  );
+    qr.stop(); // stop camera after scan
+  }
+).catch(() => {
+  Html5Qrcode.getCameras().then(cameras => {
+    qr.start(cameras[cameras.length - 1].id, { fps: 10, qrbox: 250 },
+      text => {
+        const match = text.match(/REG_ID:(.*)/);
+        if (!match) return;
+        regId = match[1].trim();
+        document.getElementById("regId").innerText = regId;
+        document.getElementById("submitBtn").disabled = false;
+        qr.stop();
+      }
+    );
+  });
 });
 
 function verify() {
   document.getElementById("result").innerHTML =
     `<div class="status">Verifying...</div>`;
 
-  fetch("YOUR_APPS_SCRIPT_URL", {
+  fetch(API_URL, {
     method: "POST",
     body: new URLSearchParams({ reg_id: regId })
   })
-  .then(res => res.json())
+  .then(r => r.json())
   .then(d => {
-    if (d.status === "ENTRY_ALLOWED" || d.status === "ALREADY_PRESENT") {
+    if (d.status !== "INVALID_QR") {
       document.getElementById("team").innerText = d.team;
       document.getElementById("leader").innerText = d.leader;
       document.getElementById("members").innerText = d.members;
       document.getElementById("events").innerText = d.events;
     }
-
     const cls = d.status === "ENTRY_ALLOWED" ? "ok" : "err";
     document.getElementById("result").innerHTML =
       `<div class="status ${cls}">${d.status.replace("_"," ")}</div>`;
