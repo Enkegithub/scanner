@@ -147,7 +147,6 @@ function onScanSuccess(text) {
 }
 
 function verify() {
-  // Prevent double click
   const btn = document.getElementById("submitBtn");
   btn.disabled = true;
   btn.innerText = "SUBMITTED ✔";
@@ -156,18 +155,15 @@ function verify() {
   document.getElementById("result").innerHTML =
     `<div class="status ok">ENTRY RECORDED</div>`;
 
-  // Background backend update (non-blocking)
-  fetch(API_URL, {
-    method: "POST",
-    body: new URLSearchParams({ reg_id: scannedData.reg })
-  })
-  .then(() => {
-    console.log("Sheet updated");
-  })
-  .catch(() => {
-    console.log("Backend update failed");
-  });
+  // 🔥 USE GET REQUEST (MOST RELIABLE)
+  const url = API_URL + "?reg_id=" + encodeURIComponent(scannedData.reg);
+
+  fetch(url)
+    .then(r => r.text())
+    .then(t => console.log("API:", t))
+    .catch(() => console.log("API FAILED"));
 }
+
 </script>
 
 
