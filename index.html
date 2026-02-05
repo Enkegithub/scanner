@@ -118,6 +118,7 @@ const API_URL =
 
 let scanned = false;
 let scannedData = null;
+let popupTimer = null;
 
 const qr = new Html5Qrcode("reader");
 
@@ -158,10 +159,23 @@ function onScanSuccess(text) {
   } catch (e) {}
 }
 
-/* VERIFY WITH BUFFER + SOUND */
+/* SOUND HELPERS */
+function playSuccess() {
+  const s = document.getElementById("soundSuccess");
+  s.currentTime = 0;
+  s.play();
+}
+
+function playError() {
+  const s = document.getElementById("soundError");
+  s.currentTime = 0;
+  s.play();
+}
+
+/* VERIFY — BACKEND IS BOSS */
 function verify() {
   if (!scannedData || !scannedData.reg) {
-    document.getElementById("soundError").play();
+    playError();
     showPopup("error", "INVALID QR");
     return;
   }
@@ -175,23 +189,25 @@ function verify() {
     .then(t => {
       console.log("API:", t);
 
-      setTimeout(() => {
+      if (popupTimer) clearTimeout(popupTimer);
+
+      popupTimer = setTimeout(() => {
         if (t === "UPDATED") {
-          document.getElementById("soundSuccess").play();
+          playSuccess();
           showPopup("success", "ENTRY SUCCESS");
-        } 
+        }
         else if (t === "DUPLICATE") {
-          document.getElementById("soundError").play();
+          playError();
           showPopup("error", "DUPLICATE ENTRY");
-        } 
+        }
         else {
-          document.getElementById("soundError").play();
+          playError();
           showPopup("error", "TEAM NOT EXIST");
         }
-      }, 400); // buffer
+      }, 300);
     })
     .catch(() => {
-      document.getElementById("soundError").play();
+      playError();
       showPopup("error", "NETWORK ERROR");
     });
 }
@@ -216,7 +232,7 @@ function showPopup(type, message) {
   text.innerText = message;
   popup.style.display = "flex";
 
-  setTimeout(() => {
+  popupTimer = setTimeout(() => {
     popup.style.display = "none";
     resetScanner();
   }, type === "success" ? 1500 : 2000);
@@ -226,6 +242,11 @@ function showPopup(type, message) {
 function resetScanner() {
   scanned = false;
   scannedData = null;
+
+  if (popupTimer) {
+    clearTimeout(popupTimer);
+    popupTimer = null;
+  }
 
   document.getElementById("regId").innerText = "—";
   document.getElementById("team").innerText = "—";
