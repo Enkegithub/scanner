@@ -63,15 +63,6 @@ button {
 button:disabled {
   background: #64748b;
 }
-.status {
-  margin-top: 14px;
-  padding: 12px;
-  border-radius: 10px;
-  text-align: center;
-  font-weight: 700;
-}
-.ok { background: #14532d; color: #22c55e; }
-.err { background: #450a0a; color: #f87171; }
 </style>
 </head>
 
@@ -103,8 +94,14 @@ button:disabled {
   <button id="submitBtn" onclick="verify()" disabled>
     VERIFY & SUBMIT
   </button>
+</div>
 
-  <div id="result"></div>
+<!-- POPUP -->
+<div id="popup" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.75); z-index:999; align-items:center; justify-content:center;">
+  <div id="popupBox" style="background:#020617; border-radius:20px; padding:30px; text-align:center; width:80%; max-width:300px;">
+    <div id="popupIcon" style="font-size:64px;"></div>
+    <div id="popupText" style="margin-top:12px; font-size:18px; font-weight:700;"></div>
+  </div>
 </div>
 
 <script>
@@ -115,12 +112,12 @@ const API_URL =
 
 /* ========================================= */
 
-let scannedData = null;
 let scanned = false;
+let scannedData = null;
 
 const qr = new Html5Qrcode("reader");
 
-/* START CAMERA */
+/* CAMERA START */
 qr.start(
   { facingMode: { exact: "environment" } },
   { fps: 10, qrbox: 250 },
@@ -141,7 +138,6 @@ function onScanSuccess(text) {
 
   try {
     const data = JSON.parse(text);
-
     if (!data.reg) return;
 
     scanned = true;
@@ -154,36 +150,81 @@ function onScanSuccess(text) {
     document.getElementById("events").innerText = data.events || "-";
 
     document.getElementById("submitBtn").disabled = false;
-
     qr.stop();
-  } catch (e) {
-    // ignore non-json QR
-  }
+  } catch (e) {}
 }
 
-/* SUBMIT */
+/* VERIFY */
 function verify() {
   if (!scannedData || !scannedData.reg) {
-    alert("Invalid QR. Scan again.");
+    showPopup("error", "INVALID QR");
     return;
   }
 
-  const btn = document.getElementById("submitBtn");
-  btn.disabled = true;
-  btn.innerText = "SUBMITTED ✔";
-
-  document.getElementById("result").innerHTML =
-    `<div class="status ok">ENTRY RECORDED</div>`;
+  document.getElementById("submitBtn").disabled = true;
+  document.getElementById("submitBtn").innerText = "SUBMITTED ✔";
 
   fetch(API_URL + "?reg_id=" + encodeURIComponent(scannedData.reg))
     .then(r => r.text())
     .then(t => {
-      console.log("API RESPONSE:", t);
-      if (t !== "UPDATED" && t !== "ALREADY PRESENT") {
-        alert("Sheet response: " + t);
+      console.log("API:", t);
+
+      if (t === "UPDATED") {
+        showPopup("success", "ENTRY SUCCESS");
+      } else if (t === "DUPLICATE") {
+        showPopup("error", "DUPLICATE ENTRY");
+      } else {
+        showPopup("error", "TEAM NOT EXIST");
       }
     })
-    .catch(() => alert("API ERROR"));
+    .catch(() => showPopup("error", "NETWORK ERROR"));
+}
+
+/* POPUP */
+function showPopup(type, message) {
+  const popup = document.getElementById("popup");
+  const icon = document.getElementById("popupIcon");
+  const text = document.getElementById("popupText");
+  const box = document.getElementById("popupBox");
+
+  if (type === "success") {
+    icon.innerHTML = "✅";
+    box.style.border = "2px solid #22c55e";
+    text.style.color = "#22c55e";
+  } else {
+    icon.innerHTML = "❌";
+    box.style.border = "2px solid #ef4444";
+    text.style.color = "#ef4444";
+  }
+
+  text.innerText = message;
+  popup.style.display = "flex";
+
+  setTimeout(() => {
+    popup.style.display = "none";
+    resetScanner();
+  }, type === "success" ? 1500 : 2000);
+}
+
+/* RESET */
+function resetScanner() {
+  scanned = false;
+  scannedData = null;
+
+  document.getElementById("regId").innerText = "—";
+  document.getElementById("team").innerText = "—";
+  document.getElementById("leader").innerText = "—";
+  document.getElementById("members").innerText = "—";
+  document.getElementById("events").innerText = "—";
+
+  document.getElementById("submitBtn").disabled = true;
+  document.getElementById("submitBtn").innerText = "VERIFY & SUBMIT";
+
+  qr.start(
+    { facingMode: { exact: "environment" } },
+    { fps: 10, qrbox: 250 },
+    onScanSuccess
+  );
 }
 </script>
 
