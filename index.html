@@ -108,8 +108,8 @@ button:disabled {
 
 <script>
 const MODE = "LIVE"; // works for both test & real
-const API_URL = "https://script.google.com/macros/s/AKfycbyvY-N_nK4uY7_sgoRE_p9SlJ_1OPkBafME1wotWH3eDbjICpUj6MXMZAt3gjiyg1-EsA/exec" +
-  (MODE === "TEST" ? "?mode=test" : "");
+const API_URL = "https://script.google.com/macros/s/AKfycbyvY-N_nK4uY7_sgoRE_p9SlJ_1OPkBafME1wotWH3eDbjICpUj6MXMZAt3gjiyg1-EsA/exec";
+
 
 let scannedData = null;
 const qr = new Html5Qrcode("reader");
@@ -151,18 +151,15 @@ function verify() {
   btn.disabled = true;
   btn.innerText = "SUBMITTED ✔";
 
-  // Instant UI feedback
   document.getElementById("result").innerHTML =
     `<div class="status ok">ENTRY RECORDED</div>`;
 
-  // 🔥 USE GET REQUEST (MOST RELIABLE)
-  const url = API_URL + "?reg_id=" + encodeURIComponent(scannedData.reg);
-
-  fetch(url)
+  fetch(API_URL + "?reg_id=" + encodeURIComponent(scannedData.reg))
     .then(r => r.text())
-    .then(t => console.log("API:", t))
-    .catch(() => console.log("API FAILED"));
+    .then(t => console.log("API RESPONSE:", t))
+    .catch(e => console.log("API ERROR", e));
 }
+
 
 </script>
 
