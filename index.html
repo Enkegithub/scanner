@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <title>Entry Scanner</title>
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <script src="https://unpkg.com/html5-qrcode"></script>
 
 <style>
@@ -14,6 +14,9 @@ header{background:#020617;padding:14px;text-align:center;color:#38bdf8;font-weig
 .card{background:#020617;border:1px solid #334155;border-radius:12px;padding:14px;margin-top:14px}
 button{width:100%;margin-top:16px;padding:14px;border-radius:10px;border:none;font-weight:700;background:#22c55e}
 button:disabled{background:#64748b}
+.status{margin-top:14px;padding:12px;border-radius:10px;text-align:center;font-weight:700}
+.ok{background:#14532d;color:#22c55e}
+.err{background:#450a0a;color:#f87171}
 </style>
 </head>
 
@@ -32,93 +35,88 @@ button:disabled{background:#64748b}
   </div>
 
   <button id="btn" onclick="verify()" disabled>VERIFY & SUBMIT</button>
+  <div id="result"></div>
 </div>
-
-<!-- POPUP -->
-<div id="popup" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);align-items:center;justify-content:center">
-  <div id="box" style="background:#020617;padding:30px;border-radius:20px;text-align:center">
-    <div id="icon" style="font-size:64px"></div>
-    <div id="msg" style="margin-top:12px;font-weight:700"></div>
-  </div>
-</div>
-
-<audio id="ok" src="https://assets.mixkit.co/active_storage/sfx/2018/2018-preview.mp3"></audio>
-<audio id="err" src="https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3"></audio>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbyvY-N_nK4uY7_sgoRE_p9SlJ_1OPkBafME1wotWH3eDbjICpUj6MXMZAt3gjiyg1-EsA/exec";
+const API_URL = "YOUR_APPS_SCRIPT_EXEC_URL";
 
-let scanned=false, data=null, timer=null;
-const qr=new Html5Qrcode("reader");
+let scanned = false;
+let data = null;
 
-qr.start({facingMode:{exact:"environment"}},{fps:10,qrbox:250},scan);
+const qr = new Html5Qrcode("reader");
 
-function scan(text){
-  if(scanned) return;
-  scanned=true;
+qr.start(
+  { facingMode: { exact: "environment" } },
+  { fps: 10, qrbox: 250 },
+  onScan
+);
 
-  fetch(API_URL+"?reg_id="+encodeURIComponent(text.trim()))
-    .then(r=>r.json())
-    .then(res=>{
-      if(res.status==="FOUND"){
-        data=res;
-        showData(res);
-        document.getElementById("btn").disabled=false;
-        qr.stop();
-      }
-      else if(res.status==="DUPLICATE"){
-        error("DUPLICATE ENTRY");
-      }
-      else{
-        error("TEAM NOT EXIST");
+function onScan(text) {
+  if (scanned) return;
+
+  try {
+    const obj = JSON.parse(text);
+
+    scanned = true;
+    data = obj;
+
+    reg.innerText = obj.reg;
+    team.innerText = obj.team;
+    leader.innerText = obj.leader;
+    members.innerText = obj.members;
+    events.innerText = obj.events;
+
+    btn.disabled = false;
+    qr.stop();
+  } catch (e) {
+    // Not our QR
+  }
+}
+
+function verify() {
+  btn.disabled = true;
+  btn.innerText = "VERIFYING…";
+
+  fetch(API_URL + "?reg_id=" + encodeURIComponent(data.reg))
+    .then(r => r.text())
+    .then(res => {
+      if (res === "UPDATED") {
+        show("ENTRY SUCCESS", true);
+      } else if (res === "DUPLICATE") {
+        show("DUPLICATE ENTRY", false);
+      } else {
+        show("NOT FOUND", false);
       }
     })
-    .catch(()=>error("NETWORK ERROR"));
+    .catch(() => show("NETWORK ERROR", false));
 }
 
-function showData(d){
-  reg.innerText=d.reg;
-  team.innerText=d.team;
-  leader.innerText=d.leader;
-  members.innerText=d.members;
-  events.innerText=d.events;
+function show(msg, ok) {
+  result.innerHTML =
+    `<div class="status ${ok ? "ok" : "err"}">${msg}</div>`;
+
+  setTimeout(reset, ok ? 1500 : 2000);
 }
 
-function verify(){
-  btn.disabled=true;
-  btn.innerText="VERIFYING…";
+function reset() {
+  scanned = false;
+  data = null;
+  btn.disabled = true;
+  btn.innerText = "VERIFY & SUBMIT";
 
-  fetch(API_URL,{method:"POST",body:new URLSearchParams({reg_id:data.reg})})
-    .then(r=>r.json())
-    .then(res=>{
-      if(res.status==="UPDATED") success("ENTRY SUCCESS");
-      else error("ERROR");
-    });
+  reg.innerText = team.innerText =
+  leader.innerText = members.innerText =
+  events.innerText = "—";
+
+  result.innerHTML = "";
+
+  qr.start(
+    { facingMode: { exact: "environment" } },
+    { fps: 10, qrbox: 250 },
+    onScan
+  );
 }
-
-function success(msg){
-  ok.play(); popup("✅",msg,1500);
-}
-
-function error(msg){
-  err.play(); popup("❌",msg,2000);
-}
-
-function popup(icon,text,time){
-  iconEl.innerText=icon; msg.innerText=text;
-  popupEl.style.display="flex";
-  timer=setTimeout(reset,time);
-}
-
-function reset(){
-  popupEl.style.display="none";
-  scanned=false; data=null;
-  btn.disabled=true; btn.innerText="VERIFY & SUBMIT";
-  reg.innerText=team.innerText=leader.innerText=members.innerText=events.innerText="—";
-  qr.start({facingMode:{exact:"environment"}},{fps:10,qrbox:250},scan);
-}
-
-const popupEl=popup, iconEl=icon, msgEl=msg;
 </script>
 </body>
 </html>
