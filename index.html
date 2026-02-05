@@ -104,6 +104,10 @@ button:disabled {
   </div>
 </div>
 
+<!-- SOUNDS -->
+<audio id="soundSuccess" src="https://assets.mixkit.co/active_storage/sfx/2018/2018-preview.mp3"></audio>
+<audio id="soundError" src="https://assets.mixkit.co/active_storage/sfx/2020/2020-preview.mp3"></audio>
+
 <script>
 /* ================= CONFIG ================= */
 
@@ -154,30 +158,42 @@ function onScanSuccess(text) {
   } catch (e) {}
 }
 
-/* VERIFY */
+/* VERIFY WITH BUFFER + SOUND */
 function verify() {
   if (!scannedData || !scannedData.reg) {
+    document.getElementById("soundError").play();
     showPopup("error", "INVALID QR");
     return;
   }
 
-  document.getElementById("submitBtn").disabled = true;
-  document.getElementById("submitBtn").innerText = "SUBMITTED ✔";
+  const btn = document.getElementById("submitBtn");
+  btn.disabled = true;
+  btn.innerText = "VERIFYING… ⏳";
 
   fetch(API_URL + "?reg_id=" + encodeURIComponent(scannedData.reg))
     .then(r => r.text())
     .then(t => {
       console.log("API:", t);
 
-      if (t === "UPDATED") {
-        showPopup("success", "ENTRY SUCCESS");
-      } else if (t === "DUPLICATE") {
-        showPopup("error", "DUPLICATE ENTRY");
-      } else {
-        showPopup("error", "TEAM NOT EXIST");
-      }
+      setTimeout(() => {
+        if (t === "UPDATED") {
+          document.getElementById("soundSuccess").play();
+          showPopup("success", "ENTRY SUCCESS");
+        } 
+        else if (t === "DUPLICATE") {
+          document.getElementById("soundError").play();
+          showPopup("error", "DUPLICATE ENTRY");
+        } 
+        else {
+          document.getElementById("soundError").play();
+          showPopup("error", "TEAM NOT EXIST");
+        }
+      }, 400); // buffer
     })
-    .catch(() => showPopup("error", "NETWORK ERROR"));
+    .catch(() => {
+      document.getElementById("soundError").play();
+      showPopup("error", "NETWORK ERROR");
+    });
 }
 
 /* POPUP */
@@ -217,8 +233,9 @@ function resetScanner() {
   document.getElementById("members").innerText = "—";
   document.getElementById("events").innerText = "—";
 
-  document.getElementById("submitBtn").disabled = true;
-  document.getElementById("submitBtn").innerText = "VERIFY & SUBMIT";
+  const btn = document.getElementById("submitBtn");
+  btn.disabled = true;
+  btn.innerText = "VERIFY & SUBMIT";
 
   qr.start(
     { facingMode: { exact: "environment" } },
