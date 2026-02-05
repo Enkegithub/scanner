@@ -1,122 +1,249 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Entry Scanner</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<title>HAKERRANNK 2026 – Entry Scanner</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
 <script src="https://unpkg.com/html5-qrcode"></script>
 
 <style>
-body{margin:0;font-family:system-ui;background:#0f172a;color:#e5e7eb}
-header{background:#020617;padding:14px;text-align:center;color:#38bdf8;font-weight:700}
-.container{max-width:420px;margin:auto;padding:14px}
-#reader{margin-top:14px}
-.card{background:#020617;border:1px solid #334155;border-radius:12px;padding:14px;margin-top:14px}
-button{width:100%;margin-top:16px;padding:14px;border-radius:10px;border:none;font-weight:700;background:#22c55e}
-button:disabled{background:#64748b}
-.status{margin-top:14px;padding:12px;border-radius:10px;text-align:center;font-weight:700}
-.ok{background:#14532d;color:#22c55e}
-.err{background:#450a0a;color:#f87171}
+body {
+  margin: 0;
+  font-family: system-ui, Arial, sans-serif;
+  background: #0f172a;
+  color: #e5e7eb;
+}
+header {
+  background: #020617;
+  padding: 14px;
+  text-align: center;
+  font-size: 18px;
+  font-weight: 600;
+  color: #38bdf8;
+}
+.container {
+  max-width: 420px;
+  margin: auto;
+  padding: 14px;
+}
+#reader {
+  width: 100%;
+  margin-top: 14px;
+  border-radius: 12px;
+  overflow: hidden;
+}
+.card {
+  background: #020617;
+  border: 1px solid #334155;
+  border-radius: 12px;
+  padding: 14px;
+  margin-top: 14px;
+}
+.label {
+  font-size: 13px;
+  color: #94a3b8;
+}
+.value {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+button {
+  width: 100%;
+  margin-top: 16px;
+  padding: 14px;
+  border-radius: 10px;
+  border: none;
+  font-size: 16px;
+  font-weight: 700;
+  background: #22c55e;
+  color: #022c22;
+}
+button:disabled {
+  background: #64748b;
+}
 </style>
 </head>
 
 <body>
-<header>ENTRY SCANNER</header>
+
+<header>HAKERRANNK 2026 – Entry Scanner</header>
 
 <div class="container">
+
   <div id="reader"></div>
 
   <div class="card">
-    <div>Reg ID: <b id="reg">—</b></div>
-    <div>Team: <b id="team">—</b></div>
-    <div>Leader: <b id="leader">—</b></div>
-    <div>Members: <b id="members">—</b></div>
-    <div>Events: <b id="events">—</b></div>
+    <div class="label">Registration ID</div>
+    <div class="value" id="regId">—</div>
+
+    <div class="label">Team Name</div>
+    <div class="value" id="team">—</div>
+
+    <div class="label">Team Leader</div>
+    <div class="value" id="leader">—</div>
+
+    <div class="label">Members</div>
+    <div class="value" id="members">—</div>
+
+    <div class="label">Event(s)</div>
+    <div class="value" id="events">—</div>
   </div>
 
-  <button id="btn" onclick="verify()" disabled>VERIFY & SUBMIT</button>
-  <div id="result"></div>
+  <button id="submitBtn" onclick="verify()" disabled>
+    VERIFY & SUBMIT
+  </button>
 </div>
 
+<!-- POPUP -->
+<div id="popup" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.75); z-index:999; align-items:center; justify-content:center;">
+  <div id="popupBox" style="background:#020617; border-radius:20px; padding:30px; text-align:center; width:80%; max-width:300px;">
+    <div id="popupIcon" style="font-size:64px;"></div>
+    <div id="popupText" style="margin-top:12px; font-size:18px; font-weight:700;"></div>
+  </div>
+</div>
+
+<!-- SOUNDS -->
+<audio id="soundSuccess" src="https://assets.mixkit.co/active_storage/sfx/2018/2018-preview.mp3"></audio>
+<audio id="soundError" src="https://assets.mixkit.co/active_storage/sfx/2020/2020-preview.mp3"></audio>
+
 <script>
-const API_URL = "YOUR_APPS_SCRIPT_EXEC_URL";
+/* ================= CONFIG ================= */
+
+const API_URL =
+  "https://script.google.com/macros/s/AKfycbyvY-N_nK4uY7_sgoRE_p9SlJ_1OPkBafME1wotWH3eDbjICpUj6MXMZAt3gjiyg1-EsA/exec";
+
+/* ========================================= */
 
 let scanned = false;
-let data = null;
+let scannedData = null;
 
 const qr = new Html5Qrcode("reader");
 
+/* CAMERA START */
 qr.start(
   { facingMode: { exact: "environment" } },
   { fps: 10, qrbox: 250 },
-  onScan
-);
+  onScanSuccess
+).catch(() => {
+  Html5Qrcode.getCameras().then(cameras => {
+    qr.start(
+      cameras[cameras.length - 1].id,
+      { fps: 10, qrbox: 250 },
+      onScanSuccess
+    );
+  });
+});
 
-function onScan(text) {
+/* SCAN HANDLER */
+function onScanSuccess(text) {
   if (scanned) return;
 
   try {
-    const obj = JSON.parse(text);
+    const data = JSON.parse(text);
+    if (!data.reg) return;
 
     scanned = true;
-    data = obj;
+    scannedData = data;
 
-    reg.innerText = obj.reg;
-    team.innerText = obj.team;
-    leader.innerText = obj.leader;
-    members.innerText = obj.members;
-    events.innerText = obj.events;
+    document.getElementById("regId").innerText = data.reg;
+    document.getElementById("team").innerText = data.team || "-";
+    document.getElementById("leader").innerText = data.leader || "-";
+    document.getElementById("members").innerText = data.members || "-";
+    document.getElementById("events").innerText = data.events || "-";
 
-    btn.disabled = false;
+    document.getElementById("submitBtn").disabled = false;
     qr.stop();
-  } catch (e) {
-    // Not our QR
-  }
+  } catch (e) {}
 }
 
+/* VERIFY WITH BUFFER + SOUND */
 function verify() {
+  if (!scannedData || !scannedData.reg) {
+    document.getElementById("soundError").play();
+    showPopup("error", "INVALID QR");
+    return;
+  }
+
+  const btn = document.getElementById("submitBtn");
   btn.disabled = true;
-  btn.innerText = "VERIFYING…";
+  btn.innerText = "VERIFYING… ⏳";
 
-  fetch(API_URL + "?reg_id=" + encodeURIComponent(data.reg))
+  fetch(API_URL + "?reg_id=" + encodeURIComponent(scannedData.reg))
     .then(r => r.text())
-    .then(res => {
-      if (res === "UPDATED") {
-        show("ENTRY SUCCESS", true);
-      } else if (res === "DUPLICATE") {
-        show("DUPLICATE ENTRY", false);
-      } else {
-        show("NOT FOUND", false);
-      }
+    .then(t => {
+      console.log("API:", t);
+
+      setTimeout(() => {
+        if (t === "UPDATED") {
+          document.getElementById("soundSuccess").play();
+          showPopup("success", "ENTRY SUCCESS");
+        } 
+        else if (t === "DUPLICATE") {
+          document.getElementById("soundError").play();
+          showPopup("error", "DUPLICATE ENTRY");
+        } 
+        else {
+          document.getElementById("soundError").play();
+          showPopup("error", "TEAM NOT EXIST");
+        }
+      }, 400); // buffer
     })
-    .catch(() => show("NETWORK ERROR", false));
+    .catch(() => {
+      document.getElementById("soundError").play();
+      showPopup("error", "NETWORK ERROR");
+    });
 }
 
-function show(msg, ok) {
-  result.innerHTML =
-    `<div class="status ${ok ? "ok" : "err"}">${msg}</div>`;
+/* POPUP */
+function showPopup(type, message) {
+  const popup = document.getElementById("popup");
+  const icon = document.getElementById("popupIcon");
+  const text = document.getElementById("popupText");
+  const box = document.getElementById("popupBox");
 
-  setTimeout(reset, ok ? 1500 : 2000);
+  if (type === "success") {
+    icon.innerHTML = "✅";
+    box.style.border = "2px solid #22c55e";
+    text.style.color = "#22c55e";
+  } else {
+    icon.innerHTML = "❌";
+    box.style.border = "2px solid #ef4444";
+    text.style.color = "#ef4444";
+  }
+
+  text.innerText = message;
+  popup.style.display = "flex";
+
+  setTimeout(() => {
+    popup.style.display = "none";
+    resetScanner();
+  }, type === "success" ? 1500 : 2000);
 }
 
-function reset() {
+/* RESET */
+function resetScanner() {
   scanned = false;
-  data = null;
+  scannedData = null;
+
+  document.getElementById("regId").innerText = "—";
+  document.getElementById("team").innerText = "—";
+  document.getElementById("leader").innerText = "—";
+  document.getElementById("members").innerText = "—";
+  document.getElementById("events").innerText = "—";
+
+  const btn = document.getElementById("submitBtn");
   btn.disabled = true;
   btn.innerText = "VERIFY & SUBMIT";
-
-  reg.innerText = team.innerText =
-  leader.innerText = members.innerText =
-  events.innerText = "—";
-
-  result.innerHTML = "";
 
   qr.start(
     { facingMode: { exact: "environment" } },
     { fps: 10, qrbox: 250 },
-    onScan
+    onScanSuccess
   );
 }
 </script>
+
 </body>
 </html>
