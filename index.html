@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
+<meta charset="UTF-8" />
 <title>HAKERRANNK 2026 – Entry Scanner</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
 <script src="https://unpkg.com/html5-qrcode"></script>
 
 <style>
@@ -107,46 +108,66 @@ button:disabled {
 </div>
 
 <script>
-const MODE = "LIVE"; // works for both test & real
-const API_URL = "https://script.google.com/macros/s/AKfycbyvY-N_nK4uY7_sgoRE_p9SlJ_1OPkBafME1wotWH3eDbjICpUj6MXMZAt3gjiyg1-EsA/exec";
+/* ================= CONFIG ================= */
 
+const API_URL =
+  "https://script.google.com/macros/s/AKfycbyvY-N_nK4uY7_sgoRE_p9SlJ_1OPkBafME1wotWH3eDbjICpUj6MXMZAt3gjiyg1-EsA/exec";
+
+/* ========================================= */
 
 let scannedData = null;
+let scanned = false;
+
 const qr = new Html5Qrcode("reader");
 
-/* START BACK CAMERA */
+/* START CAMERA */
 qr.start(
   { facingMode: { exact: "environment" } },
   { fps: 10, qrbox: 250 },
   onScanSuccess
 ).catch(() => {
   Html5Qrcode.getCameras().then(cameras => {
-    qr.start(cameras[cameras.length - 1].id, { fps: 10, qrbox: 250 }, onScanSuccess);
+    qr.start(
+      cameras[cameras.length - 1].id,
+      { fps: 10, qrbox: 250 },
+      onScanSuccess
+    );
   });
 });
 
+/* SCAN HANDLER */
 function onScanSuccess(text) {
-  try {
-    const data = JSON.parse(text); // 👈 KEY CHANGE
+  if (scanned) return;
 
+  try {
+    const data = JSON.parse(text);
+
+    if (!data.reg) return;
+
+    scanned = true;
     scannedData = data;
 
-    // SHOW DATA INSTANTLY ⚡
     document.getElementById("regId").innerText = data.reg;
-    document.getElementById("team").innerText = data.team;
-    document.getElementById("leader").innerText = data.leader;
-    document.getElementById("members").innerText = data.members;
-    document.getElementById("events").innerText = data.events;
+    document.getElementById("team").innerText = data.team || "-";
+    document.getElementById("leader").innerText = data.leader || "-";
+    document.getElementById("members").innerText = data.members || "-";
+    document.getElementById("events").innerText = data.events || "-";
 
     document.getElementById("submitBtn").disabled = false;
 
     qr.stop();
   } catch (e) {
-    // Not our QR
+    // ignore non-json QR
   }
 }
 
+/* SUBMIT */
 function verify() {
+  if (!scannedData || !scannedData.reg) {
+    alert("Invalid QR. Scan again.");
+    return;
+  }
+
   const btn = document.getElementById("submitBtn");
   btn.disabled = true;
   btn.innerText = "SUBMITTED ✔";
@@ -156,13 +177,15 @@ function verify() {
 
   fetch(API_URL + "?reg_id=" + encodeURIComponent(scannedData.reg))
     .then(r => r.text())
-    .then(t => console.log("API RESPONSE:", t))
-    .catch(e => console.log("API ERROR", e));
+    .then(t => {
+      console.log("API RESPONSE:", t);
+      if (t !== "UPDATED" && t !== "ALREADY PRESENT") {
+        alert("Sheet response: " + t);
+      }
+    })
+    .catch(() => alert("API ERROR"));
 }
-
-
 </script>
-
 
 </body>
 </html>
