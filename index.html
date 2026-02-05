@@ -1,271 +1,124 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8" />
-<title>HAKERRANNK 2026 – Entry Scanner</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
+<meta charset="UTF-8">
+<title>Entry Scanner</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <script src="https://unpkg.com/html5-qrcode"></script>
 
 <style>
-body {
-  margin: 0;
-  font-family: system-ui, Arial, sans-serif;
-  background: #0f172a;
-  color: #e5e7eb;
-}
-header {
-  background: #020617;
-  padding: 14px;
-  text-align: center;
-  font-size: 18px;
-  font-weight: 600;
-  color: #38bdf8;
-}
-.container {
-  max-width: 420px;
-  margin: auto;
-  padding: 14px;
-}
-#reader {
-  width: 100%;
-  margin-top: 14px;
-  border-radius: 12px;
-  overflow: hidden;
-}
-.card {
-  background: #020617;
-  border: 1px solid #334155;
-  border-radius: 12px;
-  padding: 14px;
-  margin-top: 14px;
-}
-.label {
-  font-size: 13px;
-  color: #94a3b8;
-}
-.value {
-  font-size: 16px;
-  font-weight: 600;
-  margin-bottom: 8px;
-}
-button {
-  width: 100%;
-  margin-top: 16px;
-  padding: 14px;
-  border-radius: 10px;
-  border: none;
-  font-size: 16px;
-  font-weight: 700;
-  background: #22c55e;
-  color: #022c22;
-}
-button:disabled {
-  background: #64748b;
-}
+body{margin:0;font-family:system-ui;background:#0f172a;color:#e5e7eb}
+header{background:#020617;padding:14px;text-align:center;color:#38bdf8;font-weight:700}
+.container{max-width:420px;margin:auto;padding:14px}
+#reader{margin-top:14px}
+.card{background:#020617;border:1px solid #334155;border-radius:12px;padding:14px;margin-top:14px}
+button{width:100%;margin-top:16px;padding:14px;border-radius:10px;border:none;font-weight:700;background:#22c55e}
+button:disabled{background:#64748b}
 </style>
 </head>
 
 <body>
-
-<header>HAKERRANNK 2026 – Entry Scanner</header>
+<header>ENTRY SCANNER</header>
 
 <div class="container">
-
   <div id="reader"></div>
 
   <div class="card">
-    <div class="label">Registration ID</div>
-    <div class="value" id="regId">—</div>
-
-    <div class="label">Team Name</div>
-    <div class="value" id="team">—</div>
-
-    <div class="label">Team Leader</div>
-    <div class="value" id="leader">—</div>
-
-    <div class="label">Members</div>
-    <div class="value" id="members">—</div>
-
-    <div class="label">Event(s)</div>
-    <div class="value" id="events">—</div>
+    <div>Reg ID: <b id="reg">—</b></div>
+    <div>Team: <b id="team">—</b></div>
+    <div>Leader: <b id="leader">—</b></div>
+    <div>Members: <b id="members">—</b></div>
+    <div>Events: <b id="events">—</b></div>
   </div>
 
-  <button id="submitBtn" onclick="verify()" disabled>
-    VERIFY & SUBMIT
-  </button>
+  <button id="btn" onclick="verify()" disabled>VERIFY & SUBMIT</button>
 </div>
 
 <!-- POPUP -->
-<div id="popup" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.75); z-index:999; align-items:center; justify-content:center;">
-  <div id="popupBox" style="background:#020617; border-radius:20px; padding:30px; text-align:center; width:80%; max-width:300px;">
-    <div id="popupIcon" style="font-size:64px;"></div>
-    <div id="popupText" style="margin-top:12px; font-size:18px; font-weight:700;"></div>
+<div id="popup" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);align-items:center;justify-content:center">
+  <div id="box" style="background:#020617;padding:30px;border-radius:20px;text-align:center">
+    <div id="icon" style="font-size:64px"></div>
+    <div id="msg" style="margin-top:12px;font-weight:700"></div>
   </div>
 </div>
 
-<!-- SOUNDS -->
-<audio id="soundSuccess" src="https://assets.mixkit.co/active_storage/sfx/2018/2018-preview.mp3"></audio>
-<audio id="soundError" src="https://assets.mixkit.co/active_storage/sfx/2020/2020-preview.mp3"></audio>
+<audio id="ok" src="https://assets.mixkit.co/active_storage/sfx/2018/2018-preview.mp3"></audio>
+<audio id="err" src="https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3"></audio>
 
 <script>
-/* ================= CONFIG ================= */
+const API_URL = "PASTE_YOUR_APPS_SCRIPT_EXEC_URL_HERE";
 
-const API_URL =
-  "https://script.google.com/macros/s/AKfycbyvY-N_nK4uY7_sgoRE_p9SlJ_1OPkBafME1wotWH3eDbjICpUj6MXMZAt3gjiyg1-EsA/exec";
+let scanned=false, data=null, timer=null;
+const qr=new Html5Qrcode("reader");
 
+qr.start({facingMode:{exact:"environment"}},{fps:10,qrbox:250},scan);
 
-/* ========================================= */
+function scan(text){
+  if(scanned) return;
+  scanned=true;
 
-let scanned = false;
-let scannedData = null;
-let popupTimer = null;
-
-const qr = new Html5Qrcode("reader");
-
-/* CAMERA START */
-qr.start(
-  { facingMode: { exact: "environment" } },
-  { fps: 10, qrbox: 250 },
-  onScanSuccess
-).catch(() => {
-  Html5Qrcode.getCameras().then(cameras => {
-    qr.start(
-      cameras[cameras.length - 1].id,
-      { fps: 10, qrbox: 250 },
-      onScanSuccess
-    );
-  });
-});
-
-/* SCAN HANDLER */
-function onScanSuccess(text) {
-  if (scanned) return;
-
-  try {
-    const data = JSON.parse(text);
-    if (!data.reg) return;
-
-    scanned = true;
-    scannedData = data;
-
-    document.getElementById("regId").innerText = data.reg;
-    document.getElementById("team").innerText = data.team || "-";
-    document.getElementById("leader").innerText = data.leader || "-";
-    document.getElementById("members").innerText = data.members || "-";
-    document.getElementById("events").innerText = data.events || "-";
-
-    document.getElementById("submitBtn").disabled = false;
-    qr.stop();
-  } catch (e) {}
-}
-
-/* SOUND HELPERS */
-function playSuccess() {
-  const s = document.getElementById("soundSuccess");
-  s.currentTime = 0;
-  s.play();
-}
-
-function playError() {
-  const s = document.getElementById("soundError");
-  s.currentTime = 0;
-  s.play();
-}
-
-/* VERIFY — BACKEND IS BOSS */
-function verify() {
-  if (!scannedData || !scannedData.reg) {
-    playError();
-    showPopup("error", "INVALID QR");
-    return;
-  }
-
-  const btn = document.getElementById("submitBtn");
-  btn.disabled = true;
-  btn.innerText = "VERIFYING… ⏳";
-
-  fetch(API_URL + "?reg_id=" + encodeURIComponent(scannedData.reg))
-    .then(r => r.text())
-    .then(t => {
-      console.log("API:", t);
-
-      if (popupTimer) clearTimeout(popupTimer);
-
-      popupTimer = setTimeout(() => {
-        if (t === "UPDATED") {
-          playSuccess();
-          showPopup("success", "ENTRY SUCCESS");
-        }
-        else if (t === "DUPLICATE") {
-          playError();
-          showPopup("error", "DUPLICATE ENTRY");
-        }
-        else {
-          playError();
-          showPopup("error", "TEAM NOT EXIST");
-        }
-      }, 300);
+  fetch(API_URL+"?reg_id="+encodeURIComponent(text.trim()))
+    .then(r=>r.json())
+    .then(res=>{
+      if(res.status==="FOUND"){
+        data=res;
+        showData(res);
+        document.getElementById("btn").disabled=false;
+        qr.stop();
+      }
+      else if(res.status==="DUPLICATE"){
+        error("DUPLICATE ENTRY");
+      }
+      else{
+        error("TEAM NOT EXIST");
+      }
     })
-    .catch(() => {
-      playError();
-      showPopup("error", "NETWORK ERROR");
+    .catch(()=>error("NETWORK ERROR"));
+}
+
+function showData(d){
+  reg.innerText=d.reg;
+  team.innerText=d.team;
+  leader.innerText=d.leader;
+  members.innerText=d.members;
+  events.innerText=d.events;
+}
+
+function verify(){
+  btn.disabled=true;
+  btn.innerText="VERIFYING…";
+
+  fetch(API_URL,{method:"POST",body:new URLSearchParams({reg_id:data.reg})})
+    .then(r=>r.json())
+    .then(res=>{
+      if(res.status==="UPDATED") success("ENTRY SUCCESS");
+      else error("ERROR");
     });
 }
 
-/* POPUP */
-function showPopup(type, message) {
-  const popup = document.getElementById("popup");
-  const icon = document.getElementById("popupIcon");
-  const text = document.getElementById("popupText");
-  const box = document.getElementById("popupBox");
-
-  if (type === "success") {
-    icon.innerHTML = "✅";
-    box.style.border = "2px solid #22c55e";
-    text.style.color = "#22c55e";
-  } else {
-    icon.innerHTML = "❌";
-    box.style.border = "2px solid #ef4444";
-    text.style.color = "#ef4444";
-  }
-
-  text.innerText = message;
-  popup.style.display = "flex";
-
-  popupTimer = setTimeout(() => {
-    popup.style.display = "none";
-    resetScanner();
-  }, type === "success" ? 1500 : 2000);
+function success(msg){
+  ok.play(); popup("✅",msg,1500);
 }
 
-/* RESET */
-function resetScanner() {
-  scanned = false;
-  scannedData = null;
-
-  if (popupTimer) {
-    clearTimeout(popupTimer);
-    popupTimer = null;
-  }
-
-  document.getElementById("regId").innerText = "—";
-  document.getElementById("team").innerText = "—";
-  document.getElementById("leader").innerText = "—";
-  document.getElementById("members").innerText = "—";
-  document.getElementById("events").innerText = "—";
-
-  const btn = document.getElementById("submitBtn");
-  btn.disabled = true;
-  btn.innerText = "VERIFY & SUBMIT";
-
-  qr.start(
-    { facingMode: { exact: "environment" } },
-    { fps: 10, qrbox: 250 },
-    onScanSuccess
-  );
+function error(msg){
+  err.play(); popup("❌",msg,2000);
 }
+
+function popup(icon,text,time){
+  iconEl.innerText=icon; msg.innerText=text;
+  popupEl.style.display="flex";
+  timer=setTimeout(reset,time);
+}
+
+function reset(){
+  popupEl.style.display="none";
+  scanned=false; data=null;
+  btn.disabled=true; btn.innerText="VERIFY & SUBMIT";
+  reg.innerText=team.innerText=leader.innerText=members.innerText=events.innerText="—";
+  qr.start({facingMode:{exact:"environment"}},{fps:10,qrbox:250},scan);
+}
+
+const popupEl=popup, iconEl=icon, msgEl=msg;
 </script>
-
 </body>
 </html>
