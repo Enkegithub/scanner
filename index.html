@@ -1,249 +1,791 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<title>HAKERRANNK 2026 – Entry Scanner</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<script src="https://unpkg.com/html5-qrcode"></script>
+  <title>Tech Genesis 2K26 Scanner</title>
 
-<style>
-body {
-  margin: 0;
-  font-family: system-ui, Arial, sans-serif;
-  background: #0f172a;
-  color: #e5e7eb;
-}
-header {
-  background: #020617;
-  padding: 14px;
-  text-align: center;
-  font-size: 18px;
-  font-weight: 600;
-  color: #38bdf8;
-}
-.container {
-  max-width: 420px;
-  margin: auto;
-  padding: 14px;
-}
-#reader {
-  width: 100%;
-  margin-top: 14px;
-  border-radius: 12px;
-  overflow: hidden;
-}
-.card {
-  background: #020617;
-  border: 1px solid #334155;
-  border-radius: 12px;
-  padding: 14px;
-  margin-top: 14px;
-}
-.label {
-  font-size: 13px;
-  color: #94a3b8;
-}
-.value {
-  font-size: 16px;
-  font-weight: 600;
-  margin-bottom: 8px;
-}
-button {
-  width: 100%;
-  margin-top: 16px;
-  padding: 14px;
-  border-radius: 10px;
-  border: none;
-  font-size: 16px;
-  font-weight: 700;
-  background: #22c55e;
-  color: #022c22;
-}
-button:disabled {
-  background: #64748b;
-}
-</style>
+  <!-- QR Scanner Library -->
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      background: #f4f7f8;
+      color: #222;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    #reader {
+      width: 100%;
+      max-width: 500px;
+      margin: auto;
+      background: white;
+      border-radius: 15px;
+      overflow: hidden;
+    }
+
+    .details {
+      margin-top: 25px;
+      background: white;
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    }
+
+    .label {
+      font-size: 13px;
+      font-weight: bold;
+      color: #666;
+      margin-top: 12px;
+    }
+
+    .value {
+      font-size: 17px;
+      font-weight: 600;
+      margin-top: 4px;
+      padding: 10px;
+      background: #f5f5f5;
+      border-radius: 8px;
+      word-break: break-word;
+    }
+
+    #verifyBtn {
+      width: 100%;
+      margin-top: 20px;
+      padding: 14px;
+      border: none;
+      border-radius: 10px;
+      background: #00ADAC;
+      color: white;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    #verifyBtn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    #resetBtn {
+      width: 100%;
+      margin-top: 10px;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      background: white;
+      cursor: pointer;
+      font-size: 15px;
+    }
+
+    #status {
+      margin-top: 15px;
+      padding: 12px;
+      border-radius: 8px;
+      text-align: center;
+      font-weight: bold;
+      display: none;
+    }
+
+    .success {
+      background: #dff7e8;
+      color: #16733b;
+    }
+
+    .error {
+      background: #ffe3e3;
+      color: #b42318;
+    }
+  </style>
 </head>
 
 <body>
 
-<header>HAKERRANNK 2026 – Entry Scanner</header>
-
 <div class="container">
+
+  <h1>Tech Genesis 2K26</h1>
+
+  <!-- =====================================================
+       QR SCANNER
+       ===================================================== -->
 
   <div id="reader"></div>
 
-  <div class="card">
+
+  <!-- =====================================================
+       PARTICIPANT DETAILS
+       ===================================================== -->
+
+  <div class="details">
+
     <div class="label">Registration ID</div>
-    <div class="value" id="regId">—</div>
+    <div class="value" id="reg_id">—</div>
+
 
     <div class="label">Team Name</div>
     <div class="value" id="team">—</div>
 
+
     <div class="label">Team Leader</div>
     <div class="value" id="leader">—</div>
+
 
     <div class="label">Members</div>
     <div class="value" id="members">—</div>
 
+
     <div class="label">Event(s)</div>
     <div class="value" id="events">—</div>
+
+
+    <!-- STATUS -->
+
+    <div id="status"></div>
+
+
+    <!-- VERIFY -->
+
+    <button
+      id="verifyBtn"
+      onclick="verifyAndSubmit()"
+      disabled
+    >
+      VERIFY & SUBMIT
+    </button>
+
+
+    <!-- RESET -->
+
+    <button
+      id="resetBtn"
+      onclick="resetParticipantDetails()"
+    >
+      SCAN NEXT
+    </button>
+
   </div>
 
-  <button id="submitBtn" onclick="verify()" disabled>
-    VERIFY & SUBMIT
-  </button>
 </div>
 
-<!-- POPUP -->
-<div id="popup" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.75); z-index:999; align-items:center; justify-content:center;">
-  <div id="popupBox" style="background:#020617; border-radius:20px; padding:30px; text-align:center; width:80%; max-width:300px;">
-    <div id="popupIcon" style="font-size:64px;"></div>
-    <div id="popupText" style="margin-top:12px; font-size:18px; font-weight:700;"></div>
-  </div>
-</div>
-
-<!-- SOUNDS -->
-<audio id="soundSuccess" src="https://assets.mixkit.co/active_storage/sfx/2018/2018-preview.mp3"></audio>
-<audio id="soundError" src="https://assets.mixkit.co/active_storage/sfx/2020/2020-preview.mp3"></audio>
 
 <script>
-/* ================= CONFIG ================= */
+
+/* ============================================================
+   GOOGLE APPS SCRIPT WEB APP
+   ============================================================ */
 
 const API_URL =
-  "https://script.google.com/macros/s/AKfycbz9gJGSaf7iamJrrGVH8gM_bDvfkP5AsTmaopqfd7GP0SGXFNeIRPyazrXbZUr_NP0QlQ/exec?action=verify&reg_id=TGX26-QZ-A0001";
-  
+  "https://script.google.com/macros/s/AKfycbz9gJGSaf7iamJrrGVH8gM_bDvfkP5AsTmaopqfd7GP0SGXFNeIRPyazrXbZUr_NP0QlQ/exec";
 
-/* ========================================= */
 
-let scanned = false;
-let scannedData = null;
+/* ============================================================
+   CURRENT REGISTRATION ID
+   ============================================================ */
 
-const qr = new Html5Qrcode("reader");
+let currentRegistrationId = "";
 
-/* CAMERA START */
-qr.start(
-  { facingMode: { exact: "environment" } },
-  { fps: 10, qrbox: 250 },
-  onScanSuccess
-).catch(() => {
-  Html5Qrcode.getCameras().then(cameras => {
-    qr.start(
-      cameras[cameras.length - 1].id,
-      { fps: 10, qrbox: 250 },
-      onScanSuccess
-    );
-  });
-});
 
-/* SCAN HANDLER */
-function onScanSuccess(text) {
-  if (scanned) return;
+/* ============================================================
+   GET ELEMENT
+   ============================================================ */
+
+function $(id) {
+  return document.getElementById(id);
+}
+
+
+/* ============================================================
+   SHOW STATUS
+   ============================================================ */
+
+function showStatus(message, type) {
+
+  const status = $("status");
+
+  status.textContent = message;
+
+  status.className = type;
+
+  status.style.display = "block";
+}
+
+
+/* ============================================================
+   HIDE STATUS
+   ============================================================ */
+
+function hideStatus() {
+
+  const status = $("status");
+
+  status.style.display = "none";
+
+}
+
+
+/* ============================================================
+   QR SCAN SUCCESS
+   ============================================================ */
+
+function handleQRResult(decodedText) {
 
   try {
-    const data = JSON.parse(text);
-    if (!data.reg) return;
 
-    scanned = true;
-    scannedData = data;
+    console.log("RAW QR:", decodedText);
 
-    document.getElementById("regId").innerText = data.reg;
-    document.getElementById("team").innerText = data.team || "-";
-    document.getElementById("leader").innerText = data.leader || "-";
-    document.getElementById("members").innerText = data.members || "-";
-    document.getElementById("events").innerText = data.events || "-";
 
-    document.getElementById("submitBtn").disabled = false;
-    qr.stop();
-  } catch (e) {}
-}
+    /* --------------------------------------------------------
+       PARSE QR JSON
+       -------------------------------------------------------- */
 
-/* VERIFY WITH BUFFER + SOUND */
-function verify() {
-  if (!scannedData || !scannedData.reg) {
-    document.getElementById("soundError").play();
-    showPopup("error", "INVALID QR");
-    return;
+    const data =
+      JSON.parse(decodedText);
+
+
+    console.log("QR DATA:", data);
+
+
+    /* --------------------------------------------------------
+       GET REGISTRATION ID
+       -------------------------------------------------------- */
+
+    currentRegistrationId =
+      String(data.reg || "").trim();
+
+
+    console.log(
+      "REGISTRATION ID:",
+      currentRegistrationId
+    );
+
+
+    /* --------------------------------------------------------
+       CHECK REGISTRATION ID
+       -------------------------------------------------------- */
+
+    if (!currentRegistrationId) {
+
+      showStatus(
+        "Registration ID missing from QR.",
+        "error"
+      );
+
+      return;
+
+    }
+
+
+    /* --------------------------------------------------------
+       SHOW REGISTRATION ID
+       -------------------------------------------------------- */
+
+    $("reg_id").textContent =
+      currentRegistrationId;
+
+
+    /* --------------------------------------------------------
+       SHOW TEAM
+       -------------------------------------------------------- */
+
+    $("team").textContent =
+      data.team || "—";
+
+
+    /* --------------------------------------------------------
+       SHOW LEADER
+       -------------------------------------------------------- */
+
+    $("leader").textContent =
+      data.leader || "—";
+
+
+    /* --------------------------------------------------------
+       SHOW MEMBERS
+       -------------------------------------------------------- */
+
+    $("members").textContent =
+      data.members || "—";
+
+
+    /* --------------------------------------------------------
+       SHOW EVENT
+       -------------------------------------------------------- */
+
+    $("events").textContent =
+      data.events || "—";
+
+
+    /* --------------------------------------------------------
+       ENABLE VERIFY
+       -------------------------------------------------------- */
+
+    $("verifyBtn").disabled = false;
+
+    $("verifyBtn").textContent =
+      "VERIFY & SUBMIT";
+
+
+    hideStatus();
+
+
+  } catch (error) {
+
+    console.error(
+      "QR PARSE ERROR:",
+      error
+    );
+
+
+    showStatus(
+      "Invalid QR code.",
+      "error"
+    );
+
   }
 
-  const btn = document.getElementById("submitBtn");
-  btn.disabled = true;
-  btn.innerText = "VERIFYING… ⏳";
-
-  fetch(API_URL + "?reg_id=" + encodeURIComponent(scannedData.reg))
-    .then(r => r.text())
-    .then(t => {
-      console.log("API:", t);
-
-      setTimeout(() => {
-        if (t === "UPDATED") {
-          document.getElementById("soundSuccess").play();
-          showPopup("success", "ENTRY SUCCESS");
-        } 
-        else if (t === "DUPLICATE") {
-          document.getElementById("soundError").play();
-          showPopup("error", "DUPLICATE ENTRY");
-        } 
-        else {
-          document.getElementById("soundError").play();
-          showPopup("error", "TEAM NOT EXIST");
-        }
-      }, 400); // buffer
-    })
-    .catch(() => {
-      document.getElementById("soundError").play();
-      showPopup("error", "NETWORK ERROR");
-    });
 }
 
-/* POPUP */
-function showPopup(type, message) {
-  const popup = document.getElementById("popup");
-  const icon = document.getElementById("popupIcon");
-  const text = document.getElementById("popupText");
-  const box = document.getElementById("popupBox");
 
-  if (type === "success") {
-    icon.innerHTML = "✅";
-    box.style.border = "2px solid #22c55e";
-    text.style.color = "#22c55e";
-  } else {
-    icon.innerHTML = "❌";
-    box.style.border = "2px solid #ef4444";
-    text.style.color = "#ef4444";
-  }
+/* ============================================================
+   VERIFY REGISTRATION
+   ============================================================ */
 
-  text.innerText = message;
-  popup.style.display = "flex";
+async function verifyAndSubmit() {
 
-  setTimeout(() => {
-    popup.style.display = "none";
-    resetScanner();
-  }, type === "success" ? 1500 : 2000);
-}
 
-/* RESET */
-function resetScanner() {
-  scanned = false;
-  scannedData = null;
+  /* ----------------------------------------------------------
+     GET REGISTRATION ID
+     ---------------------------------------------------------- */
 
-  document.getElementById("regId").innerText = "—";
-  document.getElementById("team").innerText = "—";
-  document.getElementById("leader").innerText = "—";
-  document.getElementById("members").innerText = "—";
-  document.getElementById("events").innerText = "—";
+  const regId =
+    String(
+      currentRegistrationId || ""
+    ).trim();
 
-  const btn = document.getElementById("submitBtn");
-  btn.disabled = true;
-  btn.innerText = "VERIFY & SUBMIT";
 
-  qr.start(
-    { facingMode: { exact: "environment" } },
-    { fps: 10, qrbox: 250 },
-    onScanSuccess
+  console.log(
+    "VERIFYING REGISTRATION:",
+    regId
   );
+
+
+  /* ----------------------------------------------------------
+     CHECK ID
+     ---------------------------------------------------------- */
+
+  if (!regId) {
+
+    showStatus(
+      "Please scan a QR code first.",
+      "error"
+    );
+
+    return;
+
+  }
+
+
+  /* ----------------------------------------------------------
+     DISABLE BUTTON
+     ---------------------------------------------------------- */
+
+  const button =
+    $("verifyBtn");
+
+
+  button.disabled = true;
+
+  button.textContent =
+    "VERIFYING...";
+
+
+  hideStatus();
+
+
+  try {
+
+
+    /* --------------------------------------------------------
+       CREATE API URL
+       -------------------------------------------------------- */
+
+    const verifyURL =
+      API_URL +
+      "?action=verify&reg_id=" +
+      encodeURIComponent(regId);
+
+
+    console.log(
+      "REQUEST:",
+      verifyURL
+    );
+
+
+    /* --------------------------------------------------------
+       SEND REQUEST
+       -------------------------------------------------------- */
+
+    const response =
+      await fetch(
+        verifyURL,
+        {
+          method: "GET",
+          cache: "no-cache",
+          redirect: "follow"
+        }
+      );
+
+
+    console.log(
+      "HTTP STATUS:",
+      response.status
+    );
+
+
+    /* --------------------------------------------------------
+       GET RESPONSE
+       -------------------------------------------------------- */
+
+    const responseText =
+      await response.text();
+
+
+    console.log(
+      "SERVER RESPONSE:",
+      responseText
+    );
+
+
+    /* --------------------------------------------------------
+       PARSE JSON
+       -------------------------------------------------------- */
+
+    let result;
+
+
+    try {
+
+      result =
+        JSON.parse(responseText);
+
+    } catch (error) {
+
+      console.error(
+        "JSON PARSE ERROR:",
+        error
+      );
+
+
+      showStatus(
+        "Invalid response from Google Apps Script.",
+        "error"
+      );
+
+
+      button.disabled = false;
+
+      button.textContent =
+        "VERIFY & SUBMIT";
+
+
+      return;
+
+    }
+
+
+    console.log(
+      "RESULT:",
+      result
+    );
+
+
+    /* ========================================================
+       SUCCESS
+       ======================================================== */
+
+    if (
+      result.success === true &&
+      (
+        result.message === "UPDATED" ||
+        result.message === "VERIFIED"
+      )
+    ) {
+
+
+      button.textContent =
+        "✓ VERIFIED";
+
+
+      showStatus(
+        "✓ Entry verified successfully — PRESENT",
+        "success"
+      );
+
+
+      return;
+
+    }
+
+
+    /* ========================================================
+       DUPLICATE
+       ======================================================== */
+
+    if (
+      result.message === "DUPLICATE"
+    ) {
+
+
+      button.textContent =
+        "ALREADY PRESENT";
+
+
+      showStatus(
+        "⚠ This registration is already PRESENT.",
+        "error"
+      );
+
+
+      return;
+
+    }
+
+
+    /* ========================================================
+       NOT FOUND / INVALID
+       ======================================================== */
+
+    button.disabled = false;
+
+    button.textContent =
+      "VERIFY & SUBMIT";
+
+
+    showStatus(
+      "Verification failed: " +
+      (
+        result.message ||
+        "Unknown error"
+      ),
+      "error"
+    );
+
+
+    console.log(
+      "Registration ID sent:",
+      regId
+    );
+
+
+    console.log(
+      "Server received:",
+      result.received
+    );
+
+
+  } catch (error) {
+
+
+    console.error(
+      "VERIFY ERROR:",
+      error
+    );
+
+
+    button.disabled = false;
+
+    button.textContent =
+      "VERIFY & SUBMIT";
+
+
+    showStatus(
+      "Unable to connect to verification server.",
+      "error"
+    );
+
+  }
+
 }
+
+
+/* ============================================================
+   RESET
+   ============================================================ */
+
+function resetParticipantDetails() {
+
+
+  currentRegistrationId = "";
+
+
+  $("reg_id").textContent =
+    "—";
+
+
+  $("team").textContent =
+    "—";
+
+
+  $("leader").textContent =
+    "—";
+
+
+  $("members").textContent =
+    "—";
+
+
+  $("events").textContent =
+    "—";
+
+
+  $("verifyBtn").disabled =
+    true;
+
+
+  $("verifyBtn").textContent =
+    "VERIFY & SUBMIT";
+
+
+  hideStatus();
+
+}
+
+
+/* ============================================================
+   START QR SCANNER
+   ============================================================ */
+
+let qrScanner = null;
+
+
+function startScanner() {
+
+
+  qrScanner =
+    new Html5Qrcode(
+      "reader"
+    );
+
+
+  const config = {
+
+    fps: 10,
+
+    qrbox: {
+      width: 250,
+      height: 250
+    },
+
+    aspectRatio: 1.0
+
+  };
+
+
+  qrScanner.start(
+
+    {
+      facingMode: "environment"
+    },
+
+    config,
+
+    function(decodedText) {
+
+
+      console.log(
+        "QR SCANNED:",
+        decodedText
+      );
+
+
+      /* -----------------------------------------------
+         PROCESS QR
+         ----------------------------------------------- */
+
+      handleQRResult(
+        decodedText
+      );
+
+
+      /* -----------------------------------------------
+         STOP CAMERA AFTER SUCCESSFUL SCAN
+         ----------------------------------------------- */
+
+      qrScanner.stop()
+        .then(function() {
+
+          console.log(
+            "Scanner stopped."
+          );
+
+        })
+        .catch(function(error) {
+
+          console.error(
+            "Scanner stop error:",
+            error
+          );
+
+        });
+
+    },
+
+    function(errorMessage) {
+
+      // Ignore normal scanning errors
+
+    }
+
+  ).catch(function(error) {
+
+    console.error(
+      "CAMERA ERROR:",
+      error
+    );
+
+
+    showStatus(
+      "Camera permission is required.",
+      "error"
+    );
+
+  });
+
+}
+
+
+/* ============================================================
+   START WHEN PAGE LOADS
+   ============================================================ */
+
+window.addEventListener(
+  "load",
+  function() {
+
+    startScanner();
+
+  }
+);
+
 </script>
 
 </body>
