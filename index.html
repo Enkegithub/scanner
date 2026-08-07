@@ -1,15 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <title>Tech Genesis 2K26 Scanner</title>
 
-  <!-- QR Scanner Library -->
+  <!-- QR SCANNER LIBRARY -->
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 
   <style>
+
     * {
       box-sizing: border-box;
     }
@@ -18,67 +20,95 @@
       margin: 0;
       padding: 0;
       font-family: Arial, sans-serif;
-      background: #f4f7f8;
+      background: #f3f8f8;
       color: #222;
     }
 
     .container {
       width: 100%;
       max-width: 600px;
-      margin: 0 auto;
-      padding: 20px;
+      margin: auto;
+      padding: 25px 18px 40px;
     }
 
     h1 {
       text-align: center;
-      margin-bottom: 20px;
+      font-size: 32px;
+      margin: 15px 0 30px;
+      font-weight: 700;
     }
+
+    /* =========================
+       SCANNER
+    ========================= */
 
     #reader {
       width: 100%;
       max-width: 500px;
-      margin: auto;
+      margin: 0 auto 25px;
       background: white;
-      border-radius: 15px;
+      border-radius: 18px;
       overflow: hidden;
     }
 
-    .details {
-      margin-top: 25px;
-      background: white;
-      padding: 20px;
+    #reader video {
+      width: 100% !important;
       border-radius: 15px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    }
+
+    #reader img {
+      max-width: 100%;
+    }
+
+    /* =========================
+       DETAILS CARD
+    ========================= */
+
+    .details {
+      background: white;
+      padding: 22px;
+      border-radius: 20px;
+      box-shadow: 0 5px 25px rgba(0,0,0,0.08);
     }
 
     .label {
-      font-size: 13px;
-      font-weight: bold;
-      color: #666;
+      font-size: 14px;
+      font-weight: 600;
+      color: #555;
       margin-top: 12px;
+      margin-bottom: 6px;
     }
 
     .value {
+      min-height: 48px;
+      display: flex;
+      align-items: center;
+      padding: 12px 15px;
+      background: #f3f3f3;
+      border-radius: 10px;
       font-size: 17px;
       font-weight: 600;
-      margin-top: 4px;
-      padding: 10px;
-      background: #f5f5f5;
-      border-radius: 8px;
       word-break: break-word;
     }
 
-    #verifyBtn {
+    /* =========================
+       BUTTONS
+    ========================= */
+
+    button {
       width: 100%;
-      margin-top: 20px;
-      padding: 14px;
       border: none;
-      border-radius: 10px;
+      cursor: pointer;
+      border-radius: 12px;
+      font-size: 17px;
+      font-weight: bold;
+      padding: 15px;
+    }
+
+    #verifyBtn {
+      margin-top: 22px;
       background: #00ADAC;
       color: white;
-      font-size: 16px;
-      font-weight: bold;
-      cursor: pointer;
     }
 
     #verifyBtn:disabled {
@@ -87,110 +117,195 @@
     }
 
     #resetBtn {
-      width: 100%;
-      margin-top: 10px;
-      padding: 12px;
-      border: 1px solid #ddd;
-      border-radius: 10px;
+      margin-top: 12px;
       background: white;
-      cursor: pointer;
-      font-size: 15px;
+      color: #222;
+      border: 2px solid #ddd;
     }
 
+    /* =========================
+       STATUS
+    ========================= */
+
     #status {
-      margin-top: 15px;
-      padding: 12px;
-      border-radius: 8px;
+      display: none;
+      margin-top: 18px;
+      padding: 14px;
+      border-radius: 10px;
       text-align: center;
       font-weight: bold;
-      display: none;
+      line-height: 1.4;
     }
 
     .success {
+      display: block !important;
       background: #dff7e8;
-      color: #16733b;
+      color: #137333;
     }
 
     .error {
-      background: #ffe3e3;
+      display: block !important;
+      background: #ffe4e4;
       color: #b42318;
     }
+
+    .info {
+      display: block !important;
+      background: #e5f6f6;
+      color: #007b7a;
+    }
+
+    /* =========================
+       MOBILE
+    ========================= */
+
+    @media (max-width: 600px) {
+
+      .container {
+        padding: 20px 15px 30px;
+      }
+
+      h1 {
+        font-size: 30px;
+      }
+
+      .details {
+        padding: 20px;
+      }
+
+    }
+
   </style>
+
 </head>
+
 
 <body>
 
-<div class="container">
+  <div class="container">
 
-  <h1>Tech Genesis 2K26</h1>
-
-  <!-- =====================================================
-       QR SCANNER
-       ===================================================== -->
-
-  <div id="reader"></div>
+    <h1>Tech Genesis 2K26</h1>
 
 
-  <!-- =====================================================
-       PARTICIPANT DETAILS
-       ===================================================== -->
+    <!-- ==================================================
+         QR SCANNER
+    =================================================== -->
 
-  <div class="details">
-
-    <div class="label">Registration ID</div>
-    <div class="value" id="reg_id">—</div>
+    <div id="reader"></div>
 
 
-    <div class="label">Team Name</div>
-    <div class="value" id="team">—</div>
+    <!-- ==================================================
+         PARTICIPANT DETAILS
+    =================================================== -->
+
+    <div class="details">
 
 
-    <div class="label">Team Leader</div>
-    <div class="value" id="leader">—</div>
+      <!-- REGISTRATION ID -->
+
+      <div class="label">
+        Registration ID
+      </div>
+
+      <div
+        class="value"
+        id="reg_id"
+      >
+        —
+      </div>
 
 
-    <div class="label">Members</div>
-    <div class="value" id="members">—</div>
+      <!-- TEAM -->
+
+      <div class="label">
+        Team Name
+      </div>
+
+      <div
+        class="value"
+        id="team"
+      >
+        —
+      </div>
 
 
-    <div class="label">Event(s)</div>
-    <div class="value" id="events">—</div>
+      <!-- LEADER -->
+
+      <div class="label">
+        Team Leader
+      </div>
+
+      <div
+        class="value"
+        id="leader"
+      >
+        —
+      </div>
 
 
-    <!-- STATUS -->
+      <!-- MEMBERS -->
 
-    <div id="status"></div>
+      <div class="label">
+        Members
+      </div>
 
-
-    <!-- VERIFY -->
-
-    <button
-      id="verifyBtn"
-      onclick="verifyAndSubmit()"
-      disabled
-    >
-      VERIFY & SUBMIT
-    </button>
+      <div
+        class="value"
+        id="members"
+      >
+        —
+      </div>
 
 
-    <!-- RESET -->
+      <!-- EVENT -->
 
-    <button
-      id="resetBtn"
-      onclick="resetParticipantDetails()"
-    >
-      SCAN NEXT
-    </button>
+      <div class="label">
+        Event(s)
+      </div>
+
+      <div
+        class="value"
+        id="events"
+      >
+        —
+      </div>
+
+
+      <!-- STATUS -->
+
+      <div id="status"></div>
+
+
+      <!-- VERIFY BUTTON -->
+
+      <button
+        id="verifyBtn"
+        onclick="verifyAndSubmit()"
+        disabled
+      >
+        VERIFY &amp; SUBMIT
+      </button>
+
+
+      <!-- SCAN NEXT -->
+
+      <button
+        id="resetBtn"
+        onclick="scanNext()"
+      >
+        SCAN NEXT
+      </button>
+
+
+    </div>
 
   </div>
-
-</div>
 
 
 <script>
 
 /* ============================================================
-   GOOGLE APPS SCRIPT WEB APP
+   GOOGLE APPS SCRIPT WEB APP URL
    ============================================================ */
 
 const API_URL =
@@ -198,23 +313,31 @@ const API_URL =
 
 
 /* ============================================================
-   CURRENT REGISTRATION ID
+   GLOBAL VARIABLES
    ============================================================ */
+
+let qrScanner = null;
+
+let scannerRunning = false;
 
 let currentRegistrationId = "";
 
+let scanLocked = false;
+
 
 /* ============================================================
-   GET ELEMENT
+   SHORT ELEMENT FUNCTION
    ============================================================ */
 
 function $(id) {
+
   return document.getElementById(id);
+
 }
 
 
 /* ============================================================
-   SHOW STATUS
+   STATUS
    ============================================================ */
 
 function showStatus(message, type) {
@@ -223,19 +346,22 @@ function showStatus(message, type) {
 
   status.textContent = message;
 
-  status.className = type;
+  status.className = "";
+
+  status.classList.add(type);
 
   status.style.display = "block";
+
 }
 
-
-/* ============================================================
-   HIDE STATUS
-   ============================================================ */
 
 function hideStatus() {
 
   const status = $("status");
+
+  status.textContent = "";
+
+  status.className = "";
 
   status.style.display = "none";
 
@@ -243,33 +369,54 @@ function hideStatus() {
 
 
 /* ============================================================
-   QR SCAN SUCCESS
+   PROCESS QR CODE
    ============================================================ */
 
 function handleQRResult(decodedText) {
 
+  console.log(
+    "QR RAW DATA:",
+    decodedText
+  );
+
+
+  /* Prevent duplicate scan */
+
+  if (scanLocked) {
+
+    return;
+
+  }
+
+
+  scanLocked = true;
+
+
   try {
 
-    console.log("RAW QR:", decodedText);
 
-
-    /* --------------------------------------------------------
+    /* ==========================================
        PARSE QR JSON
-       -------------------------------------------------------- */
+    ========================================== */
 
     const data =
       JSON.parse(decodedText);
 
 
-    console.log("QR DATA:", data);
+    console.log(
+      "QR JSON:",
+      data
+    );
 
 
-    /* --------------------------------------------------------
-       GET REGISTRATION ID
-       -------------------------------------------------------- */
+    /* ==========================================
+       REGISTRATION ID
+    ========================================== */
 
     currentRegistrationId =
-      String(data.reg || "").trim();
+      String(
+        data.reg || ""
+      ).trim();
 
 
     console.log(
@@ -278,65 +425,51 @@ function handleQRResult(decodedText) {
     );
 
 
-    /* --------------------------------------------------------
-       CHECK REGISTRATION ID
-       -------------------------------------------------------- */
+    /* ==========================================
+       CHECK REGISTRATION
+    ========================================== */
 
     if (!currentRegistrationId) {
 
       showStatus(
-        "Registration ID missing from QR.",
+        "Registration ID not found in QR code.",
         "error"
       );
+
+      scanLocked = false;
 
       return;
 
     }
 
 
-    /* --------------------------------------------------------
-       SHOW REGISTRATION ID
-       -------------------------------------------------------- */
+    /* ==========================================
+       SHOW DATA
+    ========================================== */
 
     $("reg_id").textContent =
       currentRegistrationId;
 
 
-    /* --------------------------------------------------------
-       SHOW TEAM
-       -------------------------------------------------------- */
-
     $("team").textContent =
       data.team || "—";
 
-
-    /* --------------------------------------------------------
-       SHOW LEADER
-       -------------------------------------------------------- */
 
     $("leader").textContent =
       data.leader || "—";
 
 
-    /* --------------------------------------------------------
-       SHOW MEMBERS
-       -------------------------------------------------------- */
-
     $("members").textContent =
       data.members || "—";
 
-
-    /* --------------------------------------------------------
-       SHOW EVENT
-       -------------------------------------------------------- */
 
     $("events").textContent =
       data.events || "—";
 
 
-    /* --------------------------------------------------------
+    /* ==========================================
        ENABLE VERIFY
-       -------------------------------------------------------- */
+    ========================================== */
 
     $("verifyBtn").disabled = false;
 
@@ -347,7 +480,15 @@ function handleQRResult(decodedText) {
     hideStatus();
 
 
+    /* ==========================================
+       STOP CAMERA
+    ========================================== */
+
+    stopScanner();
+
+
   } catch (error) {
+
 
     console.error(
       "QR PARSE ERROR:",
@@ -356,7 +497,126 @@ function handleQRResult(decodedText) {
 
 
     showStatus(
-      "Invalid QR code.",
+      "Invalid QR code. Please scan the official entry pass.",
+      "error"
+    );
+
+
+    scanLocked = false;
+
+  }
+
+}
+
+
+/* ============================================================
+   START SCANNER
+   ============================================================ */
+
+async function startScanner() {
+
+
+  /* Prevent duplicate camera */
+
+  if (scannerRunning) {
+
+    console.log(
+      "Scanner already running."
+    );
+
+    return;
+
+  }
+
+
+  try {
+
+
+    /* ==========================================
+       CREATE SCANNER
+    ========================================== */
+
+    if (!qrScanner) {
+
+      qrScanner =
+        new Html5Qrcode("reader");
+
+    }
+
+
+    /* ==========================================
+       CONFIG
+    ========================================== */
+
+    const config = {
+
+      fps: 10,
+
+      qrbox: {
+        width: 250,
+        height: 250
+      },
+
+      aspectRatio: 1.0,
+
+      rememberLastUsedCamera: true
+
+    };
+
+
+    /* ==========================================
+       START CAMERA
+    ========================================== */
+
+    await qrScanner.start(
+
+      {
+        facingMode: "environment"
+      },
+
+      config,
+
+      function(decodedText) {
+
+        handleQRResult(
+          decodedText
+        );
+
+      },
+
+      function(errorMessage) {
+
+        /*
+          Normal scanning errors are ignored.
+          The camera is still working.
+        */
+
+      }
+
+    );
+
+
+    scannerRunning = true;
+
+    console.log(
+      "CAMERA STARTED"
+    );
+
+
+  } catch (error) {
+
+
+    console.error(
+      "CAMERA START ERROR:",
+      error
+    );
+
+
+    scannerRunning = false;
+
+
+    showStatus(
+      "Camera could not start. Please allow camera permission and try again.",
       "error"
     );
 
@@ -366,15 +626,62 @@ function handleQRResult(decodedText) {
 
 
 /* ============================================================
-   VERIFY REGISTRATION
+   STOP SCANNER
+   ============================================================ */
+
+async function stopScanner() {
+
+
+  if (
+    !qrScanner ||
+    !scannerRunning
+  ) {
+
+    return;
+
+  }
+
+
+  try {
+
+
+    await qrScanner.stop();
+
+
+    scannerRunning = false;
+
+
+    console.log(
+      "CAMERA STOPPED"
+    );
+
+
+  } catch (error) {
+
+
+    console.error(
+      "CAMERA STOP ERROR:",
+      error
+    );
+
+
+    scannerRunning = false;
+
+  }
+
+}
+
+
+/* ============================================================
+   VERIFY & SUBMIT
    ============================================================ */
 
 async function verifyAndSubmit() {
 
 
-  /* ----------------------------------------------------------
+  /* ==========================================
      GET REGISTRATION ID
-     ---------------------------------------------------------- */
+  ========================================== */
 
   const regId =
     String(
@@ -383,14 +690,14 @@ async function verifyAndSubmit() {
 
 
   console.log(
-    "VERIFYING REGISTRATION:",
+    "VERIFY REGISTRATION:",
     regId
   );
 
 
-  /* ----------------------------------------------------------
-     CHECK ID
-     ---------------------------------------------------------- */
+  /* ==========================================
+     CHECK
+  ========================================== */
 
   if (!regId) {
 
@@ -404,9 +711,9 @@ async function verifyAndSubmit() {
   }
 
 
-  /* ----------------------------------------------------------
-     DISABLE BUTTON
-     ---------------------------------------------------------- */
+  /* ==========================================
+     BUTTON
+  ========================================== */
 
   const button =
     $("verifyBtn");
@@ -424,25 +731,32 @@ async function verifyAndSubmit() {
   try {
 
 
-    /* --------------------------------------------------------
-       CREATE API URL
-       -------------------------------------------------------- */
+    /* ==========================================
+       API URL
+
+       Example:
+
+       ?action=verify
+       &reg_id=TGX26-ES-X001
+    ========================================== */
 
     const verifyURL =
       API_URL +
       "?action=verify&reg_id=" +
-      encodeURIComponent(regId);
+      encodeURIComponent(
+        regId
+      );
 
 
     console.log(
-      "REQUEST:",
+      "API REQUEST:",
       verifyURL
     );
 
 
-    /* --------------------------------------------------------
-       SEND REQUEST
-       -------------------------------------------------------- */
+    /* ==========================================
+       REQUEST
+    ========================================== */
 
     const response =
       await fetch(
@@ -461,9 +775,9 @@ async function verifyAndSubmit() {
     );
 
 
-    /* --------------------------------------------------------
-       GET RESPONSE
-       -------------------------------------------------------- */
+    /* ==========================================
+       RESPONSE
+    ========================================== */
 
     const responseText =
       await response.text();
@@ -475,9 +789,9 @@ async function verifyAndSubmit() {
     );
 
 
-    /* --------------------------------------------------------
+    /* ==========================================
        PARSE JSON
-       -------------------------------------------------------- */
+    ========================================== */
 
     let result;
 
@@ -485,9 +799,12 @@ async function verifyAndSubmit() {
     try {
 
       result =
-        JSON.parse(responseText);
+        JSON.parse(
+          responseText
+        );
 
     } catch (error) {
+
 
       console.error(
         "JSON PARSE ERROR:",
@@ -518,16 +835,13 @@ async function verifyAndSubmit() {
     );
 
 
-    /* ========================================================
-       SUCCESS
-       ======================================================== */
+    /* ==========================================
+       UPDATED
+    ========================================== */
 
     if (
       result.success === true &&
-      (
-        result.message === "UPDATED" ||
-        result.message === "VERIFIED"
-      )
+      result.message === "UPDATED"
     ) {
 
 
@@ -536,9 +850,15 @@ async function verifyAndSubmit() {
 
 
       showStatus(
-        "✓ Entry verified successfully — PRESENT",
+        "✓ VERIFIED SUCCESSFULLY — PRESENT",
         "success"
       );
+
+
+      /*
+        Keep scanner stopped.
+        User presses SCAN NEXT.
+      */
 
 
       return;
@@ -546,9 +866,9 @@ async function verifyAndSubmit() {
     }
 
 
-    /* ========================================================
+    /* ==========================================
        DUPLICATE
-       ======================================================== */
+    ========================================== */
 
     if (
       result.message === "DUPLICATE"
@@ -570,9 +890,9 @@ async function verifyAndSubmit() {
     }
 
 
-    /* ========================================================
-       NOT FOUND / INVALID
-       ======================================================== */
+    /* ==========================================
+       NOT FOUND
+    ========================================== */
 
     button.disabled = false;
 
@@ -581,24 +901,22 @@ async function verifyAndSubmit() {
 
 
     showStatus(
+
       "Verification failed: " +
+
       (
         result.message ||
-        "Unknown error"
+        "Registration not found"
       ),
+
       "error"
+
     );
 
 
     console.log(
-      "Registration ID sent:",
+      "REGISTRATION SENT:",
       regId
-    );
-
-
-    console.log(
-      "Server received:",
-      result.received
     );
 
 
@@ -628,38 +946,76 @@ async function verifyAndSubmit() {
 
 
 /* ============================================================
-   RESET
+   SCAN NEXT
    ============================================================ */
 
-function resetParticipantDetails() {
+async function scanNext() {
 
+
+  console.log(
+    "SCAN NEXT CLICKED"
+  );
+
+
+  /* ==========================================
+     STOP OLD SCANNER FIRST
+  ========================================== */
+
+  if (qrScanner) {
+
+    try {
+
+      if (scannerRunning) {
+
+        await qrScanner.stop();
+
+      }
+
+    } catch (error) {
+
+      console.log(
+        "Old scanner already stopped."
+      );
+
+    }
+
+  }
+
+
+  scannerRunning = false;
+
+
+  /* ==========================================
+     CLEAR DATA
+  ========================================== */
 
   currentRegistrationId = "";
+
+  scanLocked = false;
 
 
   $("reg_id").textContent =
     "—";
 
-
   $("team").textContent =
     "—";
-
 
   $("leader").textContent =
     "—";
 
-
   $("members").textContent =
     "—";
-
 
   $("events").textContent =
     "—";
 
 
+  /* ==========================================
+     RESET VERIFY
+  ========================================== */
+
   $("verifyBtn").disabled =
     true;
-
 
   $("verifyBtn").textContent =
     "VERIFY & SUBMIT";
@@ -667,119 +1023,62 @@ function resetParticipantDetails() {
 
   hideStatus();
 
-}
+
+  /* ==========================================
+     CLEAR OLD CAMERA UI
+  ========================================== */
+
+  $("reader").innerHTML = "";
 
 
-/* ============================================================
-   START QR SCANNER
-   ============================================================ */
+  /*
+     IMPORTANT:
 
-let qrScanner = null;
+     html5-qrcode creates a scanner object
+     attached to the old reader element.
 
+     Therefore create a fresh scanner.
+  */
 
-function startScanner() {
-
-
-  qrScanner =
-    new Html5Qrcode(
-      "reader"
-    );
+  qrScanner = null;
 
 
-  const config = {
+  /* ==========================================
+     WAIT A LITTLE
+  ========================================== */
 
-    fps: 10,
+  await new Promise(
+    function(resolve) {
 
-    qrbox: {
-      width: 250,
-      height: 250
-    },
-
-    aspectRatio: 1.0
-
-  };
-
-
-  qrScanner.start(
-
-    {
-      facingMode: "environment"
-    },
-
-    config,
-
-    function(decodedText) {
-
-
-      console.log(
-        "QR SCANNED:",
-        decodedText
+      setTimeout(
+        resolve,
+        300
       );
-
-
-      /* -----------------------------------------------
-         PROCESS QR
-         ----------------------------------------------- */
-
-      handleQRResult(
-        decodedText
-      );
-
-
-      /* -----------------------------------------------
-         STOP CAMERA AFTER SUCCESSFUL SCAN
-         ----------------------------------------------- */
-
-      qrScanner.stop()
-        .then(function() {
-
-          console.log(
-            "Scanner stopped."
-          );
-
-        })
-        .catch(function(error) {
-
-          console.error(
-            "Scanner stop error:",
-            error
-          );
-
-        });
-
-    },
-
-    function(errorMessage) {
-
-      // Ignore normal scanning errors
 
     }
-
-  ).catch(function(error) {
-
-    console.error(
-      "CAMERA ERROR:",
-      error
-    );
+  );
 
 
-    showStatus(
-      "Camera permission is required.",
-      "error"
-    );
+  /* ==========================================
+     START CAMERA AGAIN
+  ========================================== */
 
-  });
+  await startScanner();
 
 }
 
 
 /* ============================================================
-   START WHEN PAGE LOADS
+   PAGE LOAD
    ============================================================ */
 
 window.addEventListener(
   "load",
   function() {
+
+    console.log(
+      "PAGE LOADED"
+    );
 
     startScanner();
 
